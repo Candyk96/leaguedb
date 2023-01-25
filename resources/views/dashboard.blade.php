@@ -1,9 +1,14 @@
 <style>
 table, th, td {
-  border: 1px solid black;
 }
 td {
     text-align: center
+}
+#table tr {
+    background: #bffed6;
+}
+#table tr:nth-child(2n+1) {
+    background: #80ffae;
 }
 </style>
 <x-app-layout>
@@ -14,7 +19,7 @@ td {
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-8xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-green-200 overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 sm:px-20 bg-green-50 border-b border-gray-200">
                 <!--<x-jet-welcome />-->
@@ -25,7 +30,7 @@ td {
                 </div>
                 <div class="p-6">
                         <div class="ml-12">
-                            <table style="width:100%">
+                            <table id="table" style="width:100%">
                                 <tr>
                                     <th>League</th>
                                     <th>Tier</th>
