@@ -63,8 +63,6 @@ td {
                         </div>
                 </div>
                 <form action="{{route('races')}}" method="GET">
-                        @csrf
-                        @METHOD('GET')
                         <button type="submit" class="rounded-md bg-green-500 text-white hover:bg-green-600 px-4 py-2 ml-12 text-sm">All races</button>
                     </form>
             </div>

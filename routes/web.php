@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\RaceController;
 use App\Models\Race;
@@ -32,9 +33,121 @@ Route::middleware([
     })->name('dashboard');
 });
 
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->get('/races', function() {
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->get('/races', function(Request $request) {
     //$races['races'] = Race::all();
-    $races['races'] = DB::select('select * from races order by date desc');
+    // filter results with search options. implement a better solution later
+    if ($request['league'] == 'All') {
+        $league_filtered = ""; // no filtering -> variable not added to SQL query
+    }
+    else {
+        $league_filtered = "where league = '{$request['league']}'"; // compare SQL: select * from races where league = req[league] order by date desc
+    }
+    if ($request['track'] == 'All') { 
+        $track_filtered = ""; // no filtering -> variable not added to SQL query
+    }
+    elseif ($request['track'] != 'All' && $league_filtered != "") { 
+        $track_filtered = "and track = '{$request['track']}'"; // compare SQL: select * from races where league = req[league] and track = req[track] order by date desc
+    }
+    else {
+        $track_filtered = "where track = '{$request['track']}'"; // compare SQL: select * from races where track = req[track] order by date desc
+    }
+    // following loops have the same patterns as the ones above
+    if ($request['qualifying_position'] == 'All') {
+        $qualifying_position_filtered = "";
+    }
+    elseif ($request['qualifying_position'] != 'All' && (str_contains($league_filtered, 'where') || str_contains($track_filtered, 'where'))) {
+        if ($request['qualifying_position'] == 'pole') {
+            $qualifying_position_filtered = "and qualifying_position = 1";
+        }
+        elseif ($request['qualifying_position'] == 'front_row') {
+            $qualifying_position_filtered = "and qualifying_position <= 2";
+        }
+        elseif ($request['qualifying_position'] == 'top5') {
+            $qualifying_position_filtered = "and qualifying_position <= 5";
+        }
+        elseif ($request['qualifying_position'] == 'top10') {
+            $qualifying_position_filtered = "and qualifying_position <= 10";
+        }
+        else {
+            $qualifying_position_filtered = "and qualifying_position > 10";
+        }
+    }
+    else {
+        if ($request['qualifying_position'] == 'pole') {
+            $qualifying_position_filtered = "where qualifying_position = 1";
+        }
+        elseif ($request['qualifying_position'] == 'front_row') {
+            $qualifying_position_filtered = "where qualifying_position <= 2";
+        }
+        elseif ($request['qualifying_position'] == 'top5') {
+            $qualifying_position_filtered = "where qualifying_position <= 5";
+        }
+        elseif ($request['qualifying_position'] == 'top10') {
+            $qualifying_position_filtered = "where qualifying_position <= 10";
+        }
+        else {
+            $qualifying_position_filtered = "where qualifying_position > 10";
+        }
+    }
+    if ($request['race_position'] == 'All') {
+        $race_position_filtered = "";
+    }
+    elseif ($request['race_position'] != 'All' && (str_contains($league_filtered, 'where') || str_contains($track_filtered, 'where') || str_contains($qualifying_position_filtered, 'where'))) {
+        if ($request['race_position'] == 'winner') {
+            $race_position_filtered = "and race_position = 1";
+        }
+        elseif ($request['race_position'] == 'podium') {
+            $race_position_filtered = "and race_position <= 3";
+        }
+        elseif ($request['race_position'] == 'top5') {
+            $race_position_filtered = "and race_position <= 5";
+        }
+        elseif ($request['race_position'] == 'top10') {
+            $race_position_filtered = "and race_position <= 10";
+        }
+        elseif ($request['race_position'] == 'outside_top10') {
+            $race_position_filtered = "and race_position > 10";
+        }
+        else {
+            $race_position_filtered = "and race_position = 'DNF'";
+        }
+    }
+    else {
+        if ($request['race_position'] == 'winner') {
+            $race_position_filtered = "where race_position = 1";
+        }
+        elseif ($request['race_position'] == 'podium') {
+            $race_position_filtered = "where race_position <= 3";
+        }
+        elseif ($request['race_position'] == 'top5') {
+            $race_position_filtered = "where race_position <= 5";
+        }
+        elseif ($request['race_position'] == 'top10') {
+            $race_position_filtered = "where race_position <= 10";
+        }
+        elseif ($request['race_position'] == 'outside_top10') {
+            $race_position_filtered = "where race_position > 10";
+        }
+        else {
+            $race_position_filtered = "where race_position = 'DNF'";
+        }
+    }
+    if ($request['game'] == 'All') {
+        $game_filtered = "";
+    }
+    elseif ($request['game'] != 'All' && (str_contains($league_filtered, 'where') || str_contains($track_filtered, 'where') || str_contains($qualifying_position_filtered, 'where') || str_contains($race_position_filtered, 'where'))) {
+        $game_filtered = "and game = '{$request['game']}'";
+    }
+    else {
+        $game_filtered = "where game = '{$request['game']}'";
+    }
+    // final SQL query
+    if (count($request->all()) >= 1) {
+        $races['races'] = DB::select("select * from races $league_filtered $track_filtered $qualifying_position_filtered $race_position_filtered $game_filtered order by date desc");
+    }
+    else {
+        $races['races'] = DB::select('select * from races order by date desc');
+    }
     $leagues['leagues'] = DB::table('races')->distinct()->get(['league']);
     $tracks['tracks'] = DB::table('races')->distinct()->orderBy('track')->get(['track']);
     $games['games'] = DB::table('races')->distinct()->get(['game']);
