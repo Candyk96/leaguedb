@@ -159,7 +159,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 })->name('races');
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->get('/addrace', function () {
-    return view('addrace');
+    $tracks['tracks'] = DB::table('races')->distinct()->orderBy('track')->get(['track']);
+    return view('addrace')
+        ->with($tracks);
 })->name('addrace');
 
 Route::post('addnewrace', [RaceController::class, 'store'])->name('addnewrace')->middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']);

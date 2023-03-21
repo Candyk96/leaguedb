@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    <div class="p-6 border-t border-gray-200 md:border-t-0 md:border-l">
+    <div class="max-w-7xl mx-auto p-6 border-t border-gray-200 md:border-t-0">
         <div class="flex items-center">
             <div class="ml-4 text-lg text-gray-600 leading-7 font-semibold">Add a race. Fields marked with the asterisk (*) are mandatory.</div>
         </div>
@@ -49,7 +49,12 @@
                     </div>
                     <div class="mt-4">
                         <label for="track" class="text-lg text-black">* Track</label>
-                        <input id="track" class="block mt-1 w-5/6 @error('track') is-invalid @enderror" type="text" name="track" value="{{old('track')}}" required />
+                        <select id="track" class="block mt-1 w-5/6" name="track" required>
+                            @foreach($tracks as $trackModel)
+                            <option value="{{$trackModel->track}}">{{$trackModel->track}}</option>
+                            @endforeach
+                        </select>
+                        <!--<input id="track" class="block mt-1 w-5/6 @error('track') is-invalid @enderror" type="text" name="track" value="{{old('track')}}" required />-->
                         @error('track')<span style="color: red">{{ $message }}</span>@enderror
                     </div>
                     <div class="mt-4">
